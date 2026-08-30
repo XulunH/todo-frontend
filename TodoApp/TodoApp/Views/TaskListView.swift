@@ -11,6 +11,7 @@ import SwiftUI
 struct TaskListView: View {
     @State private var viewModel = TaskListViewModel()
     @State private var isCreating = false
+    @State private var isShowingSettings = false
     @State private var taskBeingEdited: TodoTask?
 
     var body: some View {
@@ -24,6 +25,11 @@ struct TaskListView: View {
         .sheet(isPresented: $isCreating) {
             TaskFormView(mode: .create) { _ in
                 Task { await viewModel.load() }
+            }
+        }
+        .sheet(isPresented: $isShowingSettings) {
+            SettingsView(settings: viewModel.settings) { updated in
+                Task { await viewModel.apply(updated) }
             }
         }
         .sheet(item: $taskBeingEdited) { task in
@@ -41,8 +47,7 @@ struct TaskListView: View {
 
     private var header: some View {
         HStack {
-            // Wired up once the Settings screen exists.
-            Button {} label: {
+            Button { isShowingSettings = true } label: {
                 Image(systemName: "gearshape.fill")
             }
             .accessibilityLabel("Settings")

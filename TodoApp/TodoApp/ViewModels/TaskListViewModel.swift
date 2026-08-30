@@ -12,6 +12,7 @@ import Foundation
 final class TaskListViewModel {
     private(set) var tasks: [TodoTask] = []
     private(set) var isLoading = false
+    private(set) var settings = TaskSettingsStore.load()
     var errorMessage: String?
 
     private let client: APIClient
@@ -25,10 +26,19 @@ final class TaskListViewModel {
         defer { isLoading = false }
 
         do {
-            tasks = try await client.fetchTasks()
+            tasks = try await client.fetchTasks(
+                completed: settings.filter.completedParameter,
+                sortBy: settings.sortByParameter
+            )
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func apply(_ newSettings: TaskSettings) async {
+        settings = newSettings
+        TaskSettingsStore.save(newSettings)
+        await load()
     }
 
     func toggleCompletion(for task: TodoTask) async {
