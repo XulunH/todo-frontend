@@ -10,6 +10,8 @@ import SwiftUI
 /// The Main Page from the design: header with settings and add buttons, then the task cards.
 struct TaskListView: View {
     @State private var viewModel = TaskListViewModel()
+    @State private var isCreating = false
+    @State private var taskBeingEdited: TodoTask?
 
     var body: some View {
         NavigationStack {
@@ -19,6 +21,16 @@ struct TaskListView: View {
                 content
             }
             .toolbar(.hidden, for: .navigationBar)
+        }
+        .sheet(isPresented: $isCreating) {
+            TaskFormView(mode: .create) { _ in
+                Task { await viewModel.load() }
+            }
+        }
+        .sheet(item: $taskBeingEdited) { task in
+            TaskFormView(mode: .edit(task)) { _ in
+                Task { await viewModel.load() }
+            }
         }
         .alert("Something went wrong", isPresented: showingError) {
             Button("OK", role: .cancel) {}
@@ -30,7 +42,7 @@ struct TaskListView: View {
 
     private var header: some View {
         HStack {
-            // Both buttons are wired up once the Settings and Create screens exist.
+            // Wired up once the Settings screen exists.
             Button {} label: {
                 Image(systemName: "gearshape.fill")
             }
@@ -43,7 +55,7 @@ struct TaskListView: View {
 
             Spacer()
 
-            Button {} label: {
+            Button { isCreating = true } label: {
                 Image(systemName: "plus.circle.fill")
             }
             .accessibilityLabel("Create task")
@@ -72,7 +84,7 @@ struct TaskListView: View {
                     ForEach(viewModel.tasks) { task in
                         TaskRowView(
                             task: task,
-                            onEdit: {},
+                            onEdit: { taskBeingEdited = task },
                             onToggleCompletion: { Task { await viewModel.toggleCompletion(for: task) } },
                             onDelete: { Task { await viewModel.delete(task) } }
                         )
