@@ -21,59 +21,93 @@ struct TaskFormView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
             Text(viewModel.title)
-                .font(.title3.weight(.bold))
-                .padding(.vertical, 16)
+                .font(Theme.Typography.screenTitle)
+                .frame(maxWidth: .infinity)
+                .padding(.top, Theme.ScreenTitle.topPadding)
 
-            VStack(alignment: .leading, spacing: 18) {
-                field("To-Do Item Name") {
-                    TextField("", text: $viewModel.taskDescription)
-                        .textFieldStyle(.plain)
-                        .inputBar()
-                }
+            Spacer().frame(height: Theme.Form.titleToLabel)
 
-                field("Select Due Date") {
-                    dueDateBar
-                }
+            Text("To-Do Item Name")
+                .font(Theme.Typography.body)
 
-                saveButton
-            }
-            .padding(.horizontal, 20)
+            Spacer().frame(height: Theme.Form.labelToField)
+
+            nameField
+
+            Spacer().frame(height: Theme.Form.fieldToLabel)
+
+            Text("Select Due Date")
+                .font(Theme.Typography.body)
+
+            Spacer().frame(height: Theme.Form.labelToField)
+
+            dueDateBar
+
+            Spacer().frame(height: Theme.Form.fieldToSaveButton)
+
+            saveButton
 
             Spacer()
         }
-        .alert("Something went wrong", isPresented: showingError) {
+        .foregroundStyle(Theme.Palette.content)
+        .padding(.horizontal, Theme.Form.horizontalMargin)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Palette.background)
+        .alert(
+            viewModel.alert?.title ?? "",
+            isPresented: showingAlert,
+            presenting: viewModel.alert
+        ) { _ in
             Button("OK", role: .cancel) {}
-        } message: {
-            Text(viewModel.errorMessage ?? "")
+        } message: { alert in
+            Text(alert.message)
         }
     }
 
-    private func field<Content: View>(
-        _ label: String,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(label)
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
-            content()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+    private var nameField: some View {
+        TextField("", text: $viewModel.taskDescription)
+            .textFieldStyle(.plain)
+            .font(Theme.Typography.body)
+            .padding(.horizontal, Theme.Form.textFieldTextInset)
+            .frame(height: Theme.Form.textFieldHeight)
+            .background(
+                Theme.Palette.surface,
+                in: .rect(cornerRadius: Theme.Form.barCornerRadius)
+            )
+            // The design outlines a field only once it holds a value.
+            .overlay {
+                if !viewModel.taskDescription.isEmpty {
+                    RoundedRectangle(cornerRadius: Theme.Form.barCornerRadius)
+                        .stroke(Theme.Palette.content, lineWidth: 1)
+                }
+            }
     }
 
     private var dueDateBar: some View {
         Button {
             isShowingDatePicker = true
         } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: 0) {
                 Text(viewModel.dueDate.taskDisplayString)
+                    .font(Theme.Typography.body)
                 Spacer()
                 Image(systemName: "calendar")
+                    .themedIcon(Theme.Icon.calendar)
             }
-            .foregroundStyle(.primary)
-            .inputBar()
+            .foregroundStyle(Theme.Palette.content)
+            .padding(.leading, Theme.Form.barTextInset)
+            .padding(.trailing, Theme.Form.calendarTrailingInset)
+            .frame(height: Theme.Form.dateBarHeight)
+            .background(
+                Theme.Palette.surface,
+                in: .rect(cornerRadius: Theme.Form.barCornerRadius)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: Theme.Form.barCornerRadius)
+                    .stroke(Theme.Palette.content, lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
         .popover(isPresented: $isShowingDatePicker) {
@@ -104,39 +138,24 @@ struct TaskFormView: View {
                 }
             } label: {
                 Text("Save")
-                    .font(.footnote.weight(.medium))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 7)
-                    .background(viewModel.canSave ? Color.black : Color.gray, in: .rect(cornerRadius: 3))
+                    .font(Theme.Typography.button)
+                    .foregroundStyle(Theme.Palette.buttonLabel)
+                    .frame(width: Theme.SaveButton.width, height: Theme.SaveButton.height)
+                    .background(
+                        Theme.Palette.buttonFill,
+                        in: .rect(cornerRadius: Theme.SaveButton.cornerRadius)
+                    )
             }
-            .disabled(!viewModel.canSave)
+            .disabled(viewModel.isSaving)
             Spacer()
         }
-        .padding(.top, 6)
     }
 
-    private var showingError: Binding<Bool> {
+    private var showingAlert: Binding<Bool> {
         Binding(
-            get: { viewModel.errorMessage != nil },
-            set: { if !$0 { viewModel.errorMessage = nil } }
+            get: { viewModel.alert != nil },
+            set: { if !$0 { viewModel.alert = nil } }
         )
-    }
-}
-
-/// Shared so the name field and the due date bar cannot drift apart visually.
-private struct InputBar: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .padding(.horizontal, 8)
-            .padding(.vertical, 7)
-            .background(Color(.secondarySystemBackground), in: .rect(cornerRadius: 4))
-    }
-}
-
-private extension View {
-    func inputBar() -> some View {
-        modifier(InputBar())
     }
 }
 

@@ -17,11 +17,18 @@ final class TaskFormViewModel {
         case edit(TodoTask)
     }
 
+    /// A blank name is the user's own slip, not a failure, so it gets its own
+    /// wording rather than being dressed up as an error.
+    struct Alert {
+        let title: String
+        let message: String
+    }
+
     let mode: Mode
     var taskDescription: String
     var dueDate: Date
     private(set) var isSaving = false
-    var errorMessage: String?
+    var alert: Alert?
 
     private let client: APIClient
 
@@ -46,18 +53,22 @@ final class TaskFormViewModel {
         }
     }
 
-    /// Mirrors the server's rule that a description cannot be blank, so the user
-    /// gets immediate feedback instead of a round trip that ends in a 400.
-    var canSave: Bool {
-        !trimmedDescription.isEmpty && !isSaving
-    }
-
     private var trimmedDescription: String {
         taskDescription.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     func save() async -> TodoTask? {
-        guard canSave else { return nil }
+        guard !isSaving else { return nil }
+
+        // Mirrors the server's rule that a description cannot be blank, so the user
+        // gets immediate feedback instead of a round trip that ends in a 400.
+        guard !trimmedDescription.isEmpty else {
+            alert = Alert(
+                title: "Name required",
+                message: "Give your to-do item a name before saving."
+            )
+            return nil
+        }
 
         isSaving = true
         defer { isSaving = false }
@@ -79,7 +90,10 @@ final class TaskFormViewModel {
                 return try await client.updateTask(UpdateTaskRequest(task: edited))
             }
         } catch {
-            errorMessage = error.localizedDescription
+            alert = Alert(
+                title: "Something went wrong",
+                message: error.localizedDescription
+            )
             return nil
         }
     }

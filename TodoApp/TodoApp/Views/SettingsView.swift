@@ -20,56 +20,85 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
             Text("Settings")
-                .font(.title3.weight(.bold))
-                .padding(.vertical, 16)
+                .font(Theme.Typography.screenTitle)
+                .frame(maxWidth: .infinity)
+                .padding(.top, Theme.ScreenTitle.topPadding)
 
-            VStack(alignment: .leading, spacing: 20) {
-                radioGroup("Filters", options: TaskFilter.allCases, selection: $draft.filter)
-                radioGroup("Sort By", options: TaskSortField.allCases, selection: $draft.sortField)
-                radioGroup(
-                    "Sort Date Direction",
-                    options: SortDirection.allCases,
-                    selection: $draft.direction
-                )
-                saveButton
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 20)
+            Spacer().frame(height: Theme.Settings.titleToFilters)
+
+            radioGroup(
+                "Filters",
+                labelToRows: Theme.Settings.filtersLabelToRows,
+                options: TaskFilter.allCases,
+                selection: $draft.filter
+            )
+
+            Spacer().frame(height: Theme.Settings.filtersToSortBy)
+
+            radioGroup(
+                "Sort By",
+                labelToRows: Theme.Settings.sortByLabelToRows,
+                options: TaskSortField.allCases,
+                selection: $draft.sortField
+            )
+
+            Spacer().frame(height: Theme.Settings.sortByToDirection)
+
+            radioGroup(
+                "Sort Date Direction",
+                labelToRows: Theme.Settings.directionLabelToRows,
+                options: SortDirection.allCases,
+                selection: $draft.direction
+            )
+
+            Spacer().frame(height: Theme.Settings.lastGroupToSave)
+
+            saveButton
 
             Spacer()
         }
+        .foregroundStyle(Theme.Palette.content)
+        .padding(.horizontal, Theme.Settings.horizontalMargin)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Palette.background)
     }
 
     private func radioGroup<Option: RadioOption>(
         _ title: String,
+        labelToRows: CGFloat,
         options: [Option],
         selection: Binding<Option>
     ) -> some View {
-        VStack(alignment: .leading, spacing: 7) {
+        VStack(alignment: .leading, spacing: 0) {
             Text(title)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.secondary)
+                .font(Theme.Typography.groupLabel)
 
-            ForEach(options) { option in
-                Button {
-                    selection.wrappedValue = option
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(
-                            systemName: selection.wrappedValue == option
-                                ? "largecircle.fill.circle"
-                                : "circle"
-                        )
-                        .font(.system(size: 13))
-                        Text(option.label)
-                            .font(.system(size: 12))
-                        Spacer()
+            Spacer().frame(height: labelToRows)
+
+            VStack(alignment: .leading, spacing: Theme.Settings.radioRowSpacing) {
+                ForEach(options) { option in
+                    Button {
+                        selection.wrappedValue = option
+                    } label: {
+                        HStack(spacing: Theme.Settings.radioToLabel) {
+                            Image(
+                                systemName: selection.wrappedValue == option
+                                    ? "largecircle.fill.circle"
+                                    : "circle"
+                            )
+                            .themedIcon(Theme.Icon.card)
+
+                            Text(option.label)
+                                .font(Theme.Typography.body)
+
+                            Spacer()
+                        }
                     }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Theme.Palette.content)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.primary)
             }
         }
     }
@@ -82,15 +111,16 @@ struct SettingsView: View {
                 dismiss()
             } label: {
                 Text("Save")
-                    .font(.footnote.weight(.medium))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 7)
-                    .background(Color.black, in: .rect(cornerRadius: 3))
+                    .font(Theme.Typography.button)
+                    .foregroundStyle(Theme.Palette.buttonLabel)
+                    .frame(width: Theme.SaveButton.width, height: Theme.SaveButton.height)
+                    .background(
+                        Theme.Palette.buttonFill,
+                        in: .rect(cornerRadius: Theme.SaveButton.cornerRadius)
+                    )
             }
             Spacer()
         }
-        .padding(.top, 6)
     }
 }
 

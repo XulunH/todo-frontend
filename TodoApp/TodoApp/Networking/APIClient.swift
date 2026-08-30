@@ -7,8 +7,10 @@
 
 import Foundation
 
-struct APIClient {
-    static let shared = APIClient()
+struct APIClient: Sendable {
+    /// `nonisolated` so view models can default their `client` parameter to it:
+    /// default argument expressions are evaluated outside the actor.
+    nonisolated static let shared = APIClient()
 
     private let baseURL = URL(string: "http://localhost:5248")!
     private let session = URLSession.shared

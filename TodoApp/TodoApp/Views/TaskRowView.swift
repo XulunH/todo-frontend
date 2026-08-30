@@ -8,6 +8,7 @@
 import SwiftUI
 
 /// One card in the task list: pencil, title with dates, checkbox, trash.
+/// Laid out to the Figma card spec: 358 x 90, #D9D9D9, radius 8.
 struct TaskRowView: View {
     let task: TodoTask
     let onEdit: () -> Void
@@ -15,51 +16,64 @@ struct TaskRowView: View {
     let onDelete: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 0) {
             Button(action: onEdit) {
                 Image(systemName: "pencil")
-                    .font(.system(size: 15))
+                    .themedIcon(Theme.Icon.card)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Edit \(task.taskDescription)")
 
-            VStack(alignment: .leading, spacing: 1) {
+            Spacer().frame(width: Theme.Card.pencilToText)
+
+            VStack(alignment: .leading, spacing: 0) {
                 Text(task.taskDescription)
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.primary)
-                    .strikethrough(task.completed)
+                    .font(Theme.Typography.cardTitle)
+                    .lineLimit(1)
+
+                Spacer().frame(height: Theme.Card.titleToDueSpacing)
 
                 Text("Due: \(task.dueDate.taskDisplayString)")
+                    .font(Theme.Typography.cardMeta)
+
+                Spacer().frame(height: Theme.Card.dueToCreatedSpacing)
+
                 Text("Created: \(task.createdDate.taskDisplayString)")
+                    .font(Theme.Typography.cardMeta)
             }
-            .font(.system(size: 9))
-            .foregroundStyle(.secondary)
 
             Spacer(minLength: 8)
 
             Button(action: onToggleCompletion) {
                 Image(systemName: task.completed ? "checkmark.square.fill" : "square")
-                    .font(.system(size: 16))
+                    .themedIcon(Theme.Icon.card)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(task.completed ? "Mark incomplete" : "Mark complete")
 
+            Spacer().frame(width: Theme.Card.checkboxToTrash)
+
             Button(action: onDelete) {
-                Image(systemName: "trash")
-                    .font(.system(size: 15))
+                Image(systemName: "trash.fill")
+                    .themedIcon(Theme.Icon.delete)
+                    .foregroundStyle(Theme.Palette.deleteIcon)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Delete \(task.taskDescription)")
         }
-        .foregroundStyle(.primary)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(Color(.systemGray5), in: .rect(cornerRadius: 6))
+        .foregroundStyle(Theme.Palette.content)
+        .padding(.leading, Theme.Card.leadingPadding)
+        .padding(.trailing, Theme.Card.trailingPadding)
+        .frame(height: Theme.Card.height)
+        .background(
+            Theme.Palette.surface,
+            in: .rect(cornerRadius: Theme.Card.cornerRadius)
+        )
     }
 }
 
 #Preview {
-    VStack(spacing: 8) {
+    VStack(spacing: Theme.Card.spacing) {
         TaskRowView(
             task: TodoTask(
                 id: UUID(),
@@ -81,5 +95,5 @@ struct TaskRowView: View {
             onEdit: {}, onToggleCompletion: {}, onDelete: {}
         )
     }
-    .padding()
+    .padding(.horizontal, Theme.Card.horizontalMargin)
 }

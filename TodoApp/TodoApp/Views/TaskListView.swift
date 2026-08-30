@@ -20,6 +20,7 @@ struct TaskListView: View {
                 header
                 content
             }
+            .background(Theme.Palette.background)
             .toolbar(.hidden, for: .navigationBar)
         }
         .sheet(isPresented: $isCreating) {
@@ -46,28 +47,29 @@ struct TaskListView: View {
     }
 
     private var header: some View {
-        HStack {
+        HStack(spacing: 0) {
             Button { isShowingSettings = true } label: {
                 Image(systemName: "gearshape.fill")
+                    .themedIcon(Theme.Icon.header)
             }
             .accessibilityLabel("Settings")
 
             Spacer()
 
             Text("Task List")
-                .font(.title3.weight(.bold))
+                .font(Theme.Typography.mainTitle)
 
             Spacer()
 
             Button { isCreating = true } label: {
                 Image(systemName: "plus.circle.fill")
+                    .themedIcon(Theme.Icon.header)
             }
             .accessibilityLabel("Create task")
         }
-        .font(.system(size: 20))
-        .foregroundStyle(.primary)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .foregroundStyle(Theme.Palette.content)
+        .padding(.horizontal, Theme.Header.horizontalMargin)
+        .padding(.vertical, Theme.Header.verticalPadding)
     }
 
     @ViewBuilder
@@ -84,7 +86,7 @@ struct TaskListView: View {
             )
         } else {
             ScrollView {
-                LazyVStack(spacing: 8) {
+                LazyVStack(spacing: Theme.Card.spacing) {
                     ForEach(viewModel.tasks) { task in
                         TaskRowView(
                             task: task,
@@ -94,8 +96,7 @@ struct TaskListView: View {
                         )
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
+                .padding(.horizontal, Theme.Card.horizontalMargin)
             }
             .refreshable { await viewModel.load() }
         }
