@@ -26,6 +26,7 @@ struct TaskRowView: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(task.taskDescription)
                     .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.primary)
                     .strikethrough(task.completed)
 
                 Text("Due: \(task.dueDate.taskDisplayString)")
@@ -53,7 +54,7 @@ struct TaskRowView: View {
         .foregroundStyle(.primary)
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(Color(.secondarySystemBackground), in: .rect(cornerRadius: 6))
+        .background(Color(.systemGray5), in: .rect(cornerRadius: 6))
     }
 }
 

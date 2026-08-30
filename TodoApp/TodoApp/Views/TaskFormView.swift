@@ -10,6 +10,7 @@ import SwiftUI
 /// The Create and Edit screens from the design.
 struct TaskFormView: View {
     @State private var viewModel: TaskFormViewModel
+    @State private var isShowingDatePicker = false
     @Environment(\.dismiss) private var dismiss
 
     private let onSaved: (TodoTask) -> Void
@@ -29,18 +30,11 @@ struct TaskFormView: View {
                 field("To-Do Item Name") {
                     TextField("", text: $viewModel.taskDescription)
                         .textFieldStyle(.plain)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 7)
-                        .background(Color(.secondarySystemBackground), in: .rect(cornerRadius: 4))
+                        .inputBar()
                 }
 
                 field("Select Due Date") {
-                    DatePicker(
-                        "Due date",
-                        selection: $viewModel.dueDate,
-                        displayedComponents: .date
-                    )
-                    .labelsHidden()
+                    dueDateBar
                 }
 
                 saveButton
@@ -65,6 +59,36 @@ struct TaskFormView: View {
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)
             content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var dueDateBar: some View {
+        Button {
+            isShowingDatePicker = true
+        } label: {
+            HStack(spacing: 8) {
+                Text(viewModel.dueDate.taskDisplayString)
+                Spacer()
+                Image(systemName: "calendar")
+            }
+            .foregroundStyle(.primary)
+            .inputBar()
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $isShowingDatePicker) {
+            DatePicker(
+                "Due date",
+                selection: $viewModel.dueDate,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.graphical)
+            .labelsHidden()
+            // The graphical picker has no intrinsic width, so without an explicit
+            // frame the popover collapses to a sliver and clips the calendar.
+            .frame(width: 320, height: 350)
+            .padding(.vertical, 8)
+            .presentationCompactAdaptation(.popover)
         }
     }
 
@@ -97,6 +121,22 @@ struct TaskFormView: View {
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.errorMessage = nil } }
         )
+    }
+}
+
+/// Shared so the name field and the due date bar cannot drift apart visually.
+private struct InputBar: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, 8)
+            .padding(.vertical, 7)
+            .background(Color(.secondarySystemBackground), in: .rect(cornerRadius: 4))
+    }
+}
+
+private extension View {
+    func inputBar() -> some View {
+        modifier(InputBar())
     }
 }
 

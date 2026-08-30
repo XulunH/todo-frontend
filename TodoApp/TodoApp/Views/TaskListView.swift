@@ -17,7 +17,6 @@ struct TaskListView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 header
-                Divider()
                 content
             }
             .toolbar(.hidden, for: .navigationBar)
